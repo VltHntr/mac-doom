@@ -44,3 +44,8 @@ Music/sound still needs to be revised and can be buggy!
 ## Notes
 
 This remains the classic software-rendered Doom port; it does not use a Metal renderer.
+
+
+## Possible future plans
+
+Convert the renderer to metal, higher resolution and perhaps also a higher frame rate.
