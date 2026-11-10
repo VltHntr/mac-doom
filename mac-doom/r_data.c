@@ -29,6 +29,7 @@ rcsid[] = "$Id: r_data.c,v 1.4 1997/02/03 16:47:55 b1 Exp $";
 
 #include "i_system.h"
 #include "z_zone.h"
+#include <stdint.h>
 
 #include "m_swap.h"
 
@@ -41,7 +42,7 @@ rcsid[] = "$Id: r_data.c,v 1.4 1997/02/03 16:47:55 b1 Exp $";
 #include "doomstat.h"
 #include "r_sky.h"
 
-#ifdef LINUX
+#if defined(LINUX) || defined(__APPLE__)
 #include  <alloca.h>
 #endif
 
@@ -84,10 +85,10 @@ typedef struct
 typedef struct
 {
     char		name[8];
-    boolean		masked;	
+    int		masked;		// 32-bit field in the on-disk WAD format
     short		width;
     short		height;
-    void		**columndirectory;	// OBSOLETE
+    int		columndirectory;	// obsolete 32-bit WAD offset
     short		patchcount;
     mappatch_t	patches[1];
 } maptexture_t;
@@ -479,10 +480,10 @@ void R_InitTextures (void)
     }
     numtextures = numtextures1 + numtextures2;
 	
-    textures = Z_Malloc (numtextures*4, PU_STATIC, 0);
-    texturecolumnlump = Z_Malloc (numtextures*4, PU_STATIC, 0);
-    texturecolumnofs = Z_Malloc (numtextures*4, PU_STATIC, 0);
-    texturecomposite = Z_Malloc (numtextures*4, PU_STATIC, 0);
+    textures = Z_Malloc (numtextures*sizeof(*textures), PU_STATIC, 0);
+    texturecolumnlump = Z_Malloc (numtextures*sizeof(*texturecolumnlump), PU_STATIC, 0);
+    texturecolumnofs = Z_Malloc (numtextures*sizeof(*texturecolumnofs), PU_STATIC, 0);
+    texturecomposite = Z_Malloc (numtextures*sizeof(*texturecomposite), PU_STATIC, 0);
     texturecompositesize = Z_Malloc (numtextures*4, PU_STATIC, 0);
     texturewidthmask = Z_Malloc (numtextures*4, PU_STATIC, 0);
     textureheight = Z_Malloc (numtextures*4, PU_STATIC, 0);
@@ -639,7 +640,7 @@ void R_InitColormaps (void)
     lump = W_GetNumForName("COLORMAP"); 
     length = W_LumpLength (lump) + 255; 
     colormaps = Z_Malloc (length, PU_STATIC, 0); 
-    colormaps = (byte *)( ((int)colormaps + 255)&~0xff); 
+    colormaps = (byte *)(((uintptr_t)colormaps + 255u) & ~(uintptr_t)0xffu);
     W_ReadLump (lump,colormaps); 
 }
 

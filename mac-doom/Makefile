@@ -13,6 +13,20 @@ LIBS=-lXext -lX11 -lnsl -lm
 # subdirectory for objects
 O=linux
 
+# Native macOS target. AppKit presents the existing CPU-rendered framebuffer;
+# audio remains a silent stub. Neither X11 nor Linux OSS is linked.
+MACOS_CC ?= clang
+MACOS_BUILD_DIR ?= build/macos
+MACOS_OBJ_DIR ?= $(MACOS_BUILD_DIR)/obj
+MACOS_CFLAGS ?= -g -Wall -std=gnu11 -DNORMALUNIX -I.
+MACOS_OBJCFLAGS ?= -g -Wall -I. -fobjc-arc
+MACOS_LIBS ?= -lm -framework AppKit -framework ApplicationServices -framework AudioToolbox
+MACOS_SRCS = $(filter-out i_video.c i_sound.c,$(wildcard *.c)) macos/i_sound_macos.c
+MACOS_OBJC_SRCS = macos/i_video_macos.m
+MACOS_OBJS = $(patsubst %.c,$(MACOS_OBJ_DIR)/%.o,$(MACOS_SRCS)) \
+	 $(patsubst %.m,$(MACOS_OBJ_DIR)/%.o,$(MACOS_OBJC_SRCS))
+MACOS_WAD = $(MACOS_BUILD_DIR)/doom1.wad
+
 # not too sophisticated dependency
 OBJS=				\
 		$(O)/doomdef.o		\
@@ -79,9 +93,14 @@ OBJS=				\
 
 all:	 $(O)/linuxxdoom
 
+macos: $(MACOS_BUILD_DIR)/doom $(MACOS_WAD)
+
 clean:
 	rm -f *.o *~ *.flc
 	rm -f linux/*
+
+clean-macos:
+	rm -rf $(MACOS_BUILD_DIR)
 
 $(O)/linuxxdoom:	$(OBJS) $(O)/i_main.o
 	$(CC) $(CFLAGS) $(LDFLAGS) $(OBJS) $(O)/i_main.o \
@@ -89,6 +108,23 @@ $(O)/linuxxdoom:	$(OBJS) $(O)/i_main.o
 
 $(O)/%.o:	%.c
 	$(CC) $(CFLAGS) -c $< -o $@
+
+$(MACOS_BUILD_DIR)/doom: $(MACOS_OBJS)
+	$(MACOS_CC) $(MACOS_CFLAGS) $(MACOS_OBJS) -o $@ $(MACOS_LIBS)
+
+$(MACOS_OBJ_DIR)/%.o: %.c
+	@mkdir -p $(dir $@)
+	$(MACOS_CC) $(MACOS_CFLAGS) -c $< -o $@
+
+$(MACOS_OBJ_DIR)/%.o: %.m
+	@mkdir -p $(dir $@)
+	$(MACOS_CC) $(MACOS_OBJCFLAGS) -c $< -o $@
+
+$(MACOS_WAD): ../wad/doom.wad
+	@mkdir -p $(dir $@)
+	cp $< $@
+
+.PHONY: macos clean-macos
 
 #############################################################
 #

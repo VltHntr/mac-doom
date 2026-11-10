@@ -366,6 +366,7 @@ S_StartSoundAtVolume
 
 #ifndef SNDSRV
   // cache data if necessary
+#ifndef MACOS_SILENT_AUDIO
   if (!sfx->data)
   {
     fprintf( stderr,
@@ -378,6 +379,7 @@ S_StartSoundAtVolume
     //       sfx_id, sfx->lumpnum, (int)sfx->data );
     
   }
+#endif
 #endif
   
   // increase the usefulness
