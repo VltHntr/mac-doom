@@ -234,7 +234,7 @@ void I_InitGraphics(void)
                                              styleMask:style
                                                backing:NSBackingStoreBuffered
                                                  defer:NO];
-    [doomWindow setTitle:@"DOOM Shareware v1.10"];
+    [doomWindow setTitle:@"mac-doom"];
     [doomWindow setContentView:[[DoomView alloc] initWithFrame:frame]];
     doomWindowDelegate = [[DoomWindowDelegate alloc] init];
     [doomWindow setDelegate:(id<NSWindowDelegate>)doomWindowDelegate];
